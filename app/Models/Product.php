@@ -32,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder|Product whereImageUrl($value)
  * @method static Builder|Product whereIsAvailable($value)
  * @method static Builder|Product whereName($value)
+ * @method static Builder|Product whereNameLike(string $name)
  * @method static Builder|Product wherePrice($value)
  * @method static Builder|Product whereStock($value)
  * @method static Builder|Product whereUpdatedAt($value)
@@ -60,4 +61,9 @@ class Product extends Model
         'price' => 0,
         'stock' => 0,
     ];
+
+    public function scopeWhereNameLike(Builder $query, string $name): Builder
+    {
+        return $query->where('name', 'like', $name . '%');
+    }
 }
