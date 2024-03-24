@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
+use App\Http\Controllers\Categories\CreateCategoryController;
 use App\Http\Controllers\Categories\GetCategoriesController;
 use App\Http\Controllers\Products\CreateProductController;
 use App\Http\Controllers\Products\DeleteProductController;
@@ -22,5 +23,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('/categories')->group(function () {
         Route::get('/', GetCategoriesController::class);
+        Route::post('/', CreateCategoryController::class);
     });
 });
