@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
+use App\Http\Controllers\Categories\GetCategoriesController;
 use App\Http\Controllers\Products\CreateProductController;
 use App\Http\Controllers\Products\DeleteProductController;
 use App\Http\Controllers\Products\GetProductsController;
@@ -17,5 +18,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', CreateProductController::class);
         Route::put('/{product}', UpdateProductController::class);
         Route::delete('/{product}', DeleteProductController::class);
+    });
+
+    Route::prefix('/categories')->group(function () {
+        Route::get('/', GetCategoriesController::class);
     });
 });
