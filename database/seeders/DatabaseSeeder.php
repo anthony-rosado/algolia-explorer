@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -15,11 +16,16 @@ class DatabaseSeeder extends Seeder
     {
         User::factory(10)->create();
 
-        Product::factory(100)
+        $products = Product::factory(20)
             ->sequence(
                 ['is_available' => true],
                 ['is_available' => false],
-            )
+            );
+
+        $childrenCategories = Category::factory(10)->has($products);
+
+        Category::factory(20)
+            ->has($childrenCategories, 'children')
             ->create();
     }
 }
