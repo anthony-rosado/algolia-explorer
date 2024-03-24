@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\Categories\CreateCategoryController;
 use App\Http\Controllers\Categories\DeleteCategoryController;
 use App\Http\Controllers\Categories\GetCategoriesController;
+use App\Http\Controllers\Categories\GetChildrenOfCategoryController;
 use App\Http\Controllers\Categories\UpdateCategoryController;
 use App\Http\Controllers\Products\CreateProductController;
 use App\Http\Controllers\Products\DeleteProductController;
@@ -30,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('/{category}')->group(function () {
             Route::put('/', UpdateCategoryController::class);
             Route::delete('/', DeleteCategoryController::class);
+            Route::get('/children', GetChildrenOfCategoryController::class);
         });
     });
 });
