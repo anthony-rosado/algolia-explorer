@@ -28,11 +28,14 @@ use Illuminate\Support\Carbon;
  * @method static CategoryFactory factory($count = null, $state = [])
  * @method static Builder|Category newModelQuery()
  * @method static Builder|Category newQuery()
+ * @method static Builder|Category onlyChildren()
+ * @method static Builder|Category onlyParents()
  * @method static Builder|Category query()
  * @method static Builder|Category whereCreatedAt($value)
  * @method static Builder|Category whereDescription($value)
  * @method static Builder|Category whereId($value)
  * @method static Builder|Category whereName($value)
+ * @method static Builder|Category whereNameLike(string $name)
  * @method static Builder|Category whereParentId($value)
  * @method static Builder|Category whereUpdatedAt($value)
  */
@@ -44,6 +47,21 @@ class Category extends Model
         'name',
         'description',
     ];
+
+    public function scopeWhereNameLike(Builder $query, string $name): Builder
+    {
+        return $query->where('name', 'like', "{$name}%");
+    }
+
+    public function scopeOnlyParents(Builder $query): Builder
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    public function scopeOnlyChildren(Builder $query): Builder
+    {
+        return $query->whereNotNull('parent_id');
+    }
 
     public function parent(): BelongsTo
     {
