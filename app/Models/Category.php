@@ -48,6 +48,16 @@ class Category extends Model
         'description',
     ];
 
+    public function isParent(): bool
+    {
+        return is_null($this->parent_id);
+    }
+
+    public function isChild(): bool
+    {
+        return !$this->isParent();
+    }
+
     public function scopeWhereNameLike(Builder $query, string $name): Builder
     {
         return $query->where('name', 'like', "{$name}%");
