@@ -11,6 +11,7 @@ use App\Http\Controllers\Categories\UpdateCategoryController;
 use App\Http\Controllers\Products\CreateProductController;
 use App\Http\Controllers\Products\DeleteProductController;
 use App\Http\Controllers\Products\GetProductsController;
+use App\Http\Controllers\Products\ImportProductsToAlgoliaController;
 use App\Http\Controllers\Products\UpdateProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', CreateProductController::class);
         Route::put('/{product}', UpdateProductController::class);
         Route::delete('/{product}', DeleteProductController::class);
+        Route::post('/import', ImportProductsToAlgoliaController::class);
     });
 
     Route::prefix('/categories')->group(function () {
