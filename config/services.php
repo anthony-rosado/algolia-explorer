@@ -31,4 +31,8 @@ return [
         ],
     ],
 
+    'algolia' => [
+        'app_id' => env('ALGOLIA_APP_ID'),
+        'api_key' => env('ALGOLIA_API_KEY'),
+    ],
 ];
