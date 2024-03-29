@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Products;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Products\CreateProductRequest;
 use App\Http\Resources\Products\ProductResource;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 
@@ -27,7 +28,24 @@ class CreateProductController extends Controller
             );
         }
 
-        $product = Product::query()->create($request->validated());
+        $categoryDoesntExists = Category::query()
+            ->where('id', $request->input('category_id'))
+            ->doesntExist();
+
+        if ($categoryDoesntExists) {
+            return response()->json(
+                [
+                    'error' => [
+                        'message' => 'Category does not exist',
+                    ],
+                ],
+                404
+            );
+        }
+
+        $product = Product::query()->make($request->validated());
+        $product->category()->associate($request->input('category_id'));
+        $product->save();
 
         return ProductResource::make($product);
     }
