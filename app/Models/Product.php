@@ -22,10 +22,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $image_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property int|null $category_id
+ * @property-read Category|null $category
  * @method static ProductFactory factory($count = null, $state = [])
  * @method static Builder|Product newModelQuery()
  * @method static Builder|Product newQuery()
  * @method static Builder|Product query()
+ * @method static Builder|Product whereCategoryId($value)
  * @method static Builder|Product whereCode($value)
  * @method static Builder|Product whereCreatedAt($value)
  * @method static Builder|Product whereDescription($value)
