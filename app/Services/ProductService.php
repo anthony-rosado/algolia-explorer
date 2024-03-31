@@ -15,4 +15,26 @@ readonly class ProductService
     {
         return $this->repository->findByCode($code);
     }
+
+    public function create(
+        string $code,
+        string $name,
+        string $description,
+        bool $isAvailable,
+        float $price,
+        int $stock,
+        ?string $imageUrl,
+        int $categoryId,
+    ): Product {
+        return $this->repository->create(
+            $code,
+            $name,
+            $description,
+            $isAvailable,
+            $price,
+            $stock,
+            $imageUrl,
+            $categoryId,
+        );
+    }
 }
