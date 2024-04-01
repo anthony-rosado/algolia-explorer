@@ -11,6 +11,16 @@ readonly class ProductService
     {
     }
 
+    public function setModel(Product $product): void
+    {
+        $this->repository->setModel($product);
+    }
+
+    public function getModel(): Product
+    {
+        return $this->repository->getModel();
+    }
+
     public function findById(int $id): ?Product
     {
         return $this->repository->findById($id);
