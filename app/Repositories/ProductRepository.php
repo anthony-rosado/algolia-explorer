@@ -11,6 +11,11 @@ use App\Models\Product;
  */
 class ProductRepository extends ModelRepository
 {
+    public static function findById(int $id): ?Product
+    {
+        return Product::query()->find($id);
+    }
+
     public function findByCode(string $code): ?Product
     {
         return Product::query()
