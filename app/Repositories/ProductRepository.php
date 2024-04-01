@@ -3,6 +3,8 @@
 namespace App\Repositories;
 
 use App\Models\Product;
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * @property Product $model
@@ -21,6 +23,18 @@ class ProductRepository extends ModelRepository
         return Product::query()
             ->where('code', '=', $code)
             ->first();
+    }
+
+    public function fetchPaginated(
+        ?string $name,
+        ?bool $isAvailable,
+        int $perPage = 15,
+        int $page = 1,
+    ): Paginator {
+        return Product::query()
+            ->unless(is_null($name), fn(Builder|Product $query) => $query->whereNameLike($name))
+            ->unless(is_null($isAvailable), fn(Builder|Product $query) => $query->whereIsAvailable($isAvailable))
+            ->simplePaginate(perPage: $perPage, page: $page);
     }
 
     public function create(

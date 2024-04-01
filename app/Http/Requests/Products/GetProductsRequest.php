@@ -17,6 +17,8 @@ class GetProductsRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string'],
             'is_available' => ['sometimes', 'boolean'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:30'],
+            'page' => ['sometimes', 'integer', 'min:1'],
         ];
     }
 }

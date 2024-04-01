@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Repositories\ProductRepository;
+use Illuminate\Contracts\Pagination\Paginator;
 
 readonly class ProductService
 {
@@ -19,6 +20,15 @@ readonly class ProductService
     public function getModel(): Product
     {
         return $this->repository->getModel();
+    }
+
+    public function getListPaginated(
+        ?string $name,
+        ?bool $isAvailable,
+        int $perPage = 1,
+        int $page = 1,
+    ): Paginator {
+        return $this->repository->fetchPaginated($name, $isAvailable, $perPage, $page);
     }
 
     public function findById(int $id): ?Product
