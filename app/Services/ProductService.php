@@ -52,4 +52,26 @@ readonly class ProductService
             $categoryId,
         );
     }
+
+    public function update(
+        string $code,
+        string $name,
+        string $description,
+        bool $isAvailable,
+        float $price,
+        int $stock,
+        ?string $imageUrl,
+        int $categoryId,
+    ): void {
+        $this->repository->update(
+            $code,
+            $name,
+            $description,
+            $isAvailable,
+            $price,
+            $stock,
+            $imageUrl,
+            $categoryId,
+        );
+    }
 }
