@@ -4,7 +4,12 @@ namespace App\Repositories;
 
 use App\Models\Product;
 
-class ProductRepository
+/**
+ * @property Product $model
+ * @method Product getModel()
+ * @method void setModel(Product $model)
+ */
+class ProductRepository extends ModelRepository
 {
     public function findByCode(string $code): ?Product
     {
