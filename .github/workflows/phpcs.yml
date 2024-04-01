@@ -17,7 +17,7 @@ jobs:
 
       - name: Install PHP_CodeSniffer
         run: |
-          curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar
+          curl -OL https://phars.phpcodesniffer.com/phpcs.phar
           php phpcs.phar --version
 
       - uses: tinovyatkin/action-php-codesniffer@v1
