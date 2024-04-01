@@ -46,4 +46,25 @@ class ProductRepository extends ModelRepository
 
         return $product;
     }
+
+    public function update(
+        string $code,
+        string $name,
+        string $description,
+        bool $isAvailable,
+        float $price,
+        int $stock,
+        ?string $imageUrl,
+        int $categoryId,
+    ): void {
+        $this->model->code = $code;
+        $this->model->name = $name;
+        $this->model->description = $description;
+        $this->model->is_available = $isAvailable;
+        $this->model->price = $price;
+        $this->model->stock = $stock;
+        $this->model->image_url = $imageUrl;
+        $this->model->category()->associate($categoryId);
+        $this->model->save();
+    }
 }
