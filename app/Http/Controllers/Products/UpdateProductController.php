@@ -2,52 +2,94 @@
 
 namespace App\Http\Controllers\Products;
 
+use App\Exceptions\Categories\CategoryNotFoundByIdException;
+use App\Exceptions\Products\DuplicateProductCodeException;
+use App\Exceptions\Products\InvalidParentCategoryAssignmentException;
+use App\Exceptions\Products\ProductNotFoundByIdException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Products\UpdateProductRequest;
 use App\Http\Resources\Products\ProductResource;
-use App\Models\Category;
-use App\Models\Product;
+use App\Services\CategoryService;
+use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class UpdateProductController extends Controller
 {
-    public function __invoke(Product $product, UpdateProductRequest $request): JsonResponse|ProductResource
+    public function __construct(
+        readonly private ProductService $productService,
+        readonly private CategoryService $categoryService,
+    ) {
+    }
+
+    public function __invoke(int $productId, UpdateProductRequest $request): JsonResponse|ProductResource
     {
-        $productExists = Product::query()
-            ->where('code', $request->input('code'))
-            ->where('id', '!=', $product->id)
-            ->exists();
+        try {
+            $product = $this->productService->findById($productId);
 
-        if ($productExists) {
+            if ($product === null) {
+                throw new ProductNotFoundByIdException($productId);
+            }
+
+            $anotherProduct = $this->productService->findByCode($request->input('code'));
+
+            if ($anotherProduct !== null && $anotherProduct->id !== $product->id) {
+                throw new DuplicateProductCodeException($request->input('code'));
+            }
+
+            $category = $this->categoryService->findById($request->input('category_id'));
+
+            if ($category === null) {
+                throw new CategoryNotFoundByIdException($request->input('category_id'));
+            }
+
+            if ($category->isParent()) {
+                throw new InvalidParentCategoryAssignmentException();
+            }
+
+            $this->productService->setModel($product);
+            $this->productService->update(
+                $request->input('code'),
+                $request->input('name'),
+                $request->input('description'),
+                $request->input('is_available'),
+                $request->input('price'),
+                $request->input('stock'),
+                $request->input('image_url'),
+                $request->input('category_id'),
+            );
+
+            $product = $this->productService->getModel();
+
+            return ProductResource::make($product);
+        } catch (ProductNotFoundByIdException | CategoryNotFoundByIdException $exception) {
             return response()->json(
                 [
                     'error' => [
-                        'message' => 'Product with the same code already exists',
+                        'message' => $exception->getMessage(),
                     ],
                 ],
-                400
+                Response::HTTP_NOT_FOUND
             );
-        }
-
-        $categoryDoesntExists = Category::query()
-            ->where('id', $request->input('category_id'))
-            ->doesntExist();
-
-        if ($categoryDoesntExists) {
+        } catch (DuplicateProductCodeException | InvalidParentCategoryAssignmentException $exception) {
             return response()->json(
                 [
                     'error' => [
-                        'message' => 'Category does not exist',
+                        'message' => $exception->getMessage(),
                     ],
                 ],
-                404
+                Response::HTTP_BAD_REQUEST
+            );
+        } catch (Throwable $exception) {
+            return response()->json(
+                [
+                    'error' => [
+                        'message' => $exception->getMessage(),
+                    ],
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-
-        $product->fill($request->validated());
-        $product->category()->associate($request->input('category_id'));
-        $product->save();
-
-        return ProductResource::make($product);
     }
 }
