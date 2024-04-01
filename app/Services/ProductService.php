@@ -11,6 +11,11 @@ readonly class ProductService
     {
     }
 
+    public function findById(int $id): ?Product
+    {
+        return $this->repository->findById($id);
+    }
+
     public function findByCode(string $code): ?Product
     {
         return $this->repository->findByCode($code);
