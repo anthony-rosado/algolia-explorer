@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Exceptions\Categories\CategoryNotFoundByIdException;
+use App\Exceptions\Categories\ChildCategoryParentRemovalException;
+use App\Exceptions\Categories\InappropriateParentCategoryAssignmentException;
 use App\Exceptions\Categories\InvalidParentAssignmentException;
 use App\Models\Category;
 use App\Repositories\CategoryRepository;
@@ -52,5 +54,42 @@ readonly class CategoryService
         }
 
         $this->repository->create($name, $description, $parentCategory?->id);
+    }
+
+    /**
+    * @throws CategoryNotFoundByIdException
+    * @throws ChildCategoryParentRemovalException
+    * @throws InappropriateParentCategoryAssignmentException
+    * @throws InvalidParentAssignmentException
+     */
+    public function update(
+        string $name,
+        string $description,
+        ?int $parentId = null
+    ): void {
+        $category = $this->getModel();
+        $parentCategory = null;
+
+        if ($category->isParent() && !is_null($parentId)) {
+            throw new InappropriateParentCategoryAssignmentException();
+        }
+
+        if ($category->isChild() && is_null($parentId)) {
+            throw new ChildCategoryParentRemovalException();
+        }
+
+        if (!is_null($parentId)) {
+            $parentCategory = $this->repository->findById($parentId);
+
+            if (is_null($parentCategory)) {
+                throw new CategoryNotFoundByIdException($parentId);
+            }
+
+            if (!$parentCategory->isParent()) {
+                throw new InvalidParentAssignmentException($parentCategory->name);
+            }
+        }
+
+        $this->repository->update($name, $description, $parentCategory?->id);
     }
 }
