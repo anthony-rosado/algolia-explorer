@@ -11,6 +11,16 @@ readonly class CategoryService
     {
     }
 
+    public function getModel(): Category
+    {
+        return $this->repository->getModel();
+    }
+
+    public function setModel(Category $category): void
+    {
+        $this->repository->setModel($category);
+    }
+
     public function findById(int $id): ?Category
     {
         return $this->repository->findById($id);
