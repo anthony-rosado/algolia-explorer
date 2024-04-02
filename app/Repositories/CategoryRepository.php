@@ -31,4 +31,9 @@ class CategoryRepository extends ModelRepository
 
         $this->setModel($category);
     }
+
+    public function delete(): void
+    {
+        $this->model->delete();
+    }
 }
