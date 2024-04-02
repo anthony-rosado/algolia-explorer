@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Exceptions\Categories\CategoryNotFoundByIdException;
+use App\Exceptions\Categories\ChildCategoryExistenceException;
 use App\Exceptions\Categories\InvalidParentAssignmentException;
+use App\Exceptions\Categories\ProductCategoryExistenceException;
 use App\Models\Category;
 use App\Repositories\CategoryRepository;
 
@@ -52,5 +54,24 @@ readonly class CategoryService
         }
 
         $this->repository->create($name, $description, $parentCategory?->id);
+    }
+
+    /**
+     * @throws ChildCategoryExistenceException
+     * @throws ProductCategoryExistenceException
+     */
+    public function delete(): void
+    {
+        $category = $this->getModel()->loadCount(['children', 'products']);
+
+        if ($category->children_count > 0) {
+            throw new ChildCategoryExistenceException();
+        }
+
+        if ($category->products_count > 0) {
+            throw new ProductCategoryExistenceException();
+        }
+
+        $this->repository->delete();
     }
 }
