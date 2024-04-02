@@ -81,4 +81,9 @@ class ProductRepository extends ModelRepository
         $this->model->category()->associate($categoryId);
         $this->model->save();
     }
+
+    public function delete(): void
+    {
+        $this->model->delete();
+    }
 }

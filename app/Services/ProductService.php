@@ -84,4 +84,9 @@ readonly class ProductService
             $categoryId,
         );
     }
+
+    public function delete(): void
+    {
+        $this->repository->delete();
+    }
 }
