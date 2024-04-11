@@ -2,70 +2,74 @@
 
 namespace App\Http\Controllers\Categories;
 
+use App\Exceptions\Categories\CategoryNotFoundByIdException;
+use App\Exceptions\Categories\ChildCategoryParentRemovalException;
+use App\Exceptions\Categories\InappropriateParentCategoryAssignmentException;
+use App\Exceptions\Categories\InvalidParentAssignmentException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Categories\UpdateCategoryRequest;
 use App\Http\Resources\Categories\CategoryResource;
-use App\Models\Category;
+use App\Services\CategoryService;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class UpdateCategoryController extends Controller
 {
-    public function __invoke(Category $category, UpdateCategoryRequest $request): CategoryResource|JsonResponse
+    public function __construct(private readonly CategoryService $service)
     {
-        $parentCategory = null;
+    }
 
-        if ($request->filled('parent_id')) {
-            $parentCategory = Category::query()->find($request->input('parent_id'));
+    public function __invoke(int $categoryId, UpdateCategoryRequest $request): CategoryResource|JsonResponse
+    {
+        try {
+            $category = $this->service->findById($categoryId);
 
-            if (is_null($parentCategory)) {
-                return response()->json(
-                    [
-                        'error' => [
-                            'message' => 'Parent category not found',
-                        ]
-                    ],
-                    404
-                );
+            if ($category === null) {
+                throw new CategoryNotFoundByIdException($categoryId);
             }
 
-            if (!$parentCategory->isParent()) {
-                return response()->json(
-                    [
-                        'error' => [
-                            'message' => "Category '{$parentCategory->name}' is not a parent category",
-                        ]
-                    ],
-                    400
-                );
-            }
-        }
+            $this->service->setModel($category);
+            $this->service->update(
+                $request->input('name'),
+                $request->input('description'),
+                $request->input('parent_id')
+            );
 
-        if ($category->isParent() && !is_null($parentCategory)) {
+            $category = $this->service->getModel();
+
+            return CategoryResource::make($category);
+        } catch (CategoryNotFoundByIdException $exception) {
             return response()->json(
                 [
                     'error' => [
-                        'message' => 'Cannot set parent category to a parent category',
-                    ]
+                        'message' => $exception->getMessage(),
+                    ],
                 ],
-                400
+                Response::HTTP_NOT_FOUND
             );
-        }
-
-        if ($category->isChild() && is_null($parentCategory)) {
+        } catch (
+            ChildCategoryParentRemovalException
+            | InappropriateParentCategoryAssignmentException
+            | InvalidParentAssignmentException $exception
+        ) {
             return response()->json(
                 [
                     'error' => [
-                        'message' => 'Cannot remove parent category from a child category',
-                    ]
+                        'message' => $exception->getMessage(),
+                    ],
                 ],
-                400
+                Response::HTTP_BAD_REQUEST
+            );
+        } catch (Throwable $throwable) {
+            return response()->json(
+                [
+                    'error' => [
+                        'message' => $throwable->getMessage(),
+                    ],
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-
-        $category->fill($request->only(['name', 'description']));
-        $category->parent()->associate($parentCategory);
-        $category->save();
-
-        return CategoryResource::make($category);
     }
 }
