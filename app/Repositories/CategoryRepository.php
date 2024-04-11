@@ -32,6 +32,17 @@ class CategoryRepository extends ModelRepository
         $this->setModel($category);
     }
 
+    public function update(
+        string $name,
+        string $description,
+        ?int $parentId = null
+    ): void {
+        $this->model->name = $name;
+        $this->model->description = $description;
+        $this->model->parent()->associate($parentId);
+        $this->model->save();
+    }
+
     public function delete(): void
     {
         $this->model->delete();
