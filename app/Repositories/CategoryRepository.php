@@ -42,4 +42,9 @@ class CategoryRepository extends ModelRepository
         $this->model->parent()->associate($parentId);
         $this->model->save();
     }
+
+    public function delete(): void
+    {
+        $this->model->delete();
+    }
 }
