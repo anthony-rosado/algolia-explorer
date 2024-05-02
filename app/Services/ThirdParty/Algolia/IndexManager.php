@@ -2,8 +2,10 @@
 
 namespace App\Services\ThirdParty\Algolia;
 
+use Algolia\AlgoliaSearch\Exceptions\MissingObjectId;
 use Algolia\AlgoliaSearch\SearchClient;
 use Algolia\AlgoliaSearch\SearchIndex;
+use Illuminate\Support\Collection;
 
 class IndexManager
 {
@@ -28,6 +30,20 @@ class IndexManager
     public function patchRecord(Record $record): void
     {
         $this->searchIndex->partialUpdateObject($record->toArray());
+    }
+
+    /**
+     * @param Collection<Record> $records
+     * @return void
+     * @throws MissingObjectId
+     */
+    public function bulkSaveRecords(Collection $records): void
+    {
+        if ($records->isEmpty()) {
+            return;
+        }
+
+        $this->searchIndex->saveObjects($records->toArray())->wait();
     }
 
     public function removeRecord(int $id): void
