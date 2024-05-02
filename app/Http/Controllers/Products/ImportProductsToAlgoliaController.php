@@ -2,70 +2,42 @@
 
 namespace App\Http\Controllers\Products;
 
-use Algolia\AlgoliaSearch\Exceptions\MissingObjectId;
-use Algolia\AlgoliaSearch\SearchClient;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use function Sentry\captureException;
 
 class ImportProductsToAlgoliaController extends Controller
 {
+    public function __construct(private readonly ProductService $productService)
+    {
+    }
+
     public function __invoke(): JsonResponse
     {
-        $products = Product::query()
-            ->with(['category.parent'])
-            ->whereIsAvailable(true)
-            ->get();
-
-        $client = SearchClient::create(
-            config('services.algolia.app_id'),
-            config('services.algolia.api_key'),
-        );
-
-        $index = $client->initIndex('products');
-
-        $records = $products->map(function ($product) {
-            return [
-                'objectID' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'image_url' => $product->image_url,
-                'subcategory' => $product->category->name,
-                'category' => $product->category->parent->name,
-            ];
-        });
-
         try {
-            $index->saveObjects($records)->wait();
-        } catch (MissingObjectId $exception) {
+            $this->productService->importToAlgolia();
+
             return response()->json(
                 [
-                    'error' => [
-                        'message' => 'Missing objectID in the records',
-                        'exception' => $exception->getMessage(),
+                    'data' => [
+                        'message' => 'Products have been imported to Algolia successfully',
                     ]
-                ],
-                500
+                ]
             );
         } catch (Throwable $throwable) {
+            captureException($throwable);
+
             return response()->json(
                 [
                     'error' => [
                         'message' => 'An error occurred while importing products to Algolia',
-                        'exception' => $throwable->getMessage(),
                     ]
                 ],
-                500
+                Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
-
-        return response()->json(
-            [
-                'data' => [
-                    'message' => 'Products have been imported to Algolia successfully',
-                ]
-            ]
-        );
     }
 }

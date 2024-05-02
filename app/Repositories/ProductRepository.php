@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * @property Product $model
@@ -23,6 +24,14 @@ class ProductRepository extends ModelRepository
         return Product::query()
             ->where('code', '=', $code)
             ->first();
+    }
+
+    public function fetchIndexables(): Collection
+    {
+        return Product::query()
+            ->with(['category.parent'])
+            ->whereIsAvailable(true)
+            ->get();
     }
 
     public function fetchPaginated(
