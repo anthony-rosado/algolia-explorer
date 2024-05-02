@@ -2,70 +2,56 @@
 
 namespace App\Observers;
 
-use Algolia\AlgoliaSearch\SearchClient;
 use App\Models\Product;
+use App\Services\ThirdParty\Algolia\IndexManager;
+use App\Services\ThirdParty\Algolia\Record;
 
-class ProductObserver
+readonly class ProductObserver
 {
+    public function __construct(private IndexManager $index)
+    {
+    }
+
     public function created(Product $product): void
     {
         if (!$product->is_available) {
             return;
         }
 
-        $client = SearchClient::create(
-            config('services.algolia.app_id'),
-            config('services.algolia.api_key'),
+        $record = new Record(
+            $product->id,
+            $product->name,
+            $product->price,
+            $product->image_url,
+            $product->category->name,
+            $product->category->parent->name,
         );
 
-        $index = $client->initIndex('products');
-
-        $record = [
-            'objectID' => $product->id,
-            'name' => $product->name,
-            'price' => $product->price,
-            'image_url' => $product->image_url,
-            'subcategory' => $product->category->name,
-            'category' => $product->category->parent->name,
-        ];
-
-        $index->saveObject($record);
+        $this->index->addRecord($record);
     }
 
     public function updated(Product $product): void
     {
-        $client = SearchClient::create(
-            config('services.algolia.app_id'),
-            config('services.algolia.api_key'),
+        if (!$product->is_available || is_null($product->category)) {
+            $this->index->removeRecord($product->id);
+
+            return;
+        }
+
+        $record = new Record(
+            $product->id,
+            $product->name,
+            $product->price,
+            $product->image_url,
+            $product->category->name,
+            $product->category->parent->name,
         );
 
-        $index = $client->initIndex('products');
-
-        if ($product->is_available) {
-            $record = [
-                'objectID' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'image_url' => $product->image_url,
-                'subcategory' => $product->category->name,
-                'category' => $product->category->parent->name,
-            ];
-
-            $index->partialUpdateObject($record);
-        } else {
-            $index->deleteObject($product->id);
-        }
+        $this->index->patchRecord($record);
     }
 
     public function deleted(Product $product): void
     {
-        $client = SearchClient::create(
-            config('services.algolia.app_id'),
-            config('services.algolia.api_key'),
-        );
-
-        $index = $client->initIndex('products');
-
-        $index->deleteObject($product->id);
+        $this->index->removeRecord($product->id);
     }
 }
