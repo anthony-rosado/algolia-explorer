@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Repositories\ProductRepository;
+use App\Services\ThirdParty\Algolia\IndexManager;
+use App\Services\ThirdParty\Algolia\Record;
 use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Support\Collection;
 
 readonly class ProductService
 {
@@ -85,8 +88,32 @@ readonly class ProductService
         );
     }
 
+    public function importToAlgolia(): void
+    {
+        $records = $this->getIndexableRecords();
+
+        $indexManager = new IndexManager();
+        $indexManager->bulkSaveRecords($records);
+    }
+
     public function delete(): void
     {
         $this->repository->delete();
+    }
+
+    private function getIndexableRecords(): Collection
+    {
+        $products = $this->repository->fetchIndexables();
+
+        return $products->map(function (Product $product) {
+            return new Record(
+                $product->id,
+                $product->name,
+                $product->price,
+                $product->image_url,
+                $product->category->name,
+                $product->category->parent->name,
+            );
+        });
     }
 }
