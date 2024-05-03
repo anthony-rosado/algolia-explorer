@@ -2,9 +2,11 @@
 
 namespace App\Services\ThirdParty\Algolia;
 
+use Algolia\AlgoliaSearch\Exceptions\AlgoliaException;
 use Algolia\AlgoliaSearch\Exceptions\MissingObjectId;
 use Algolia\AlgoliaSearch\SearchClient;
 use Algolia\AlgoliaSearch\SearchIndex;
+use App\Exceptions\ThirdParty\Algolia\SearchErrorException;
 use Illuminate\Support\Collection;
 
 class IndexManager
@@ -44,6 +46,26 @@ class IndexManager
         }
 
         $this->searchIndex->saveObjects($records->toArray())->wait();
+    }
+
+    /**
+     * @throws SearchErrorException
+     */
+    public function searchRecords(string $query, int $page = 0, int $perPage = 15): SearchResponse
+    {
+        try {
+            $results = $this->searchIndex->search($query, ['page' => $page, 'hitsPerPage' => $perPage]);
+        } catch (AlgoliaException $exception) {
+            throw new SearchErrorException($exception);
+        }
+
+        return new SearchResponse(
+            $results['hits'],
+            $results['nbHits'],
+            $results['hitsPerPage'],
+            $results['page'],
+            $results['nbPages'],
+        );
     }
 
     public function removeRecord(int $id): void

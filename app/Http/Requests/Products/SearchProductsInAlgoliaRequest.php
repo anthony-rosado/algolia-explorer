@@ -17,6 +17,7 @@ class SearchProductsInAlgoliaRequest extends FormRequest
         return [
             'query' => ['required', 'string', 'max:512'],
             'page' => ['required', 'integer', 'min:1'],
+            'per_page' => ['required', 'integer', 'min:1'],
         ];
     }
 }
