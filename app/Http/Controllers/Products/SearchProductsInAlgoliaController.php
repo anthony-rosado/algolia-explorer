@@ -2,52 +2,41 @@
 
 namespace App\Http\Controllers\Products;
 
-use Algolia\AlgoliaSearch\SearchClient;
+use App\Exceptions\ThirdParty\Algolia\SearchErrorException;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Products\SearchProductsInAlgoliaRequest;
+use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use function Sentry\captureException;
 
-class SearchProductsInAlgoliaController
+class SearchProductsInAlgoliaController extends Controller
 {
+    public function __construct(private readonly ProductService $service)
+    {
+    }
+
     public function __invoke(SearchProductsInAlgoliaRequest $request): JsonResponse
     {
-        $client = SearchClient::create(
-            config('services.algolia.app_id'),
-            config('services.algolia.api_key'),
-        );
+        try {
+            $searchResult = $this->service->searchInAlgolia(
+                $request->query('query'),
+                $request->query('page', 1),
+                $request->query('per_page', 15)
+            );
 
-        $index = $client->initIndex('products');
+            return response()->json($searchResult->toArray());
+        } catch (SearchErrorException $exception) {
+            captureException($exception);
 
-        $index->setSettings(
-            [
-                'searchableAttributes' => ['name', 'subcategory', 'category'],
-                'attributesToRetrieve' => ['name', 'price', 'image_url', 'subcategory', 'category'],
-            ]
-        );
-
-        $results = $index->search($request->query('query'), ['page' => $request->query('page') - 1]);
-
-        $products = collect($results['hits'])
-            ->map(function ($product) {
-                return [
-                    'id' => $product['objectID'],
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    'image_url' => $product['image_url'],
-                    'subcategory' => $product['subcategory'],
-                    'category' => $product['category'],
-                ];
-            });
-
-        return response()->json(
-            [
-                'data' => $products,
-                'meta' => [
-                    'current_page' => $results['page'] + 1,
-                    'total_pages' => $results['nbPages'],
-                    'records_per_page' => $results['hitsPerPage'],
-                    'total_records' => $results['nbHits'],
-                ]
-            ]
-        );
+            return response()->json(
+                [
+                    'error' => [
+                        'message' => $exception->getMessage(),
+                    ],
+                ],
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
     }
 }

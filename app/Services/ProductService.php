@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ThirdParty\Algolia\SearchErrorException;
 use App\Models\Product;
 use App\Repositories\ProductRepository;
 use App\Services\ThirdParty\Algolia\IndexManager;
@@ -94,6 +95,35 @@ readonly class ProductService
 
         $indexManager = new IndexManager();
         $indexManager->bulkSaveRecords($records);
+    }
+
+    /**
+     * @throws SearchErrorException
+     */
+    public function searchInAlgolia(string $query, int $page, int $perPage): SearchResult
+    {
+        $indexManager = new IndexManager();
+        $response = $indexManager->searchRecords($query, $page - 1, $perPage);
+
+        $records = collect($response->hits)
+            ->map(function (array $record) {
+                return new ItemResult(
+                    $record['objectID'],
+                    $record['name'],
+                    $record['price'],
+                    $record['image_url'],
+                    $record['subcategory_name'],
+                    $record['category_name'],
+                );
+            });
+
+        return new SearchResult(
+            $records->toArray(),
+            $response->hitsCount,
+            $response->hitsPerPage,
+            $response->page + 1,
+            $response->pagesCount,
+        );
     }
 
     public function delete(): void
