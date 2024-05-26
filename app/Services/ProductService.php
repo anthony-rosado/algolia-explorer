@@ -135,11 +135,12 @@ readonly class ProductService
     {
         $products = $this->repository->fetchIndexables();
 
-        return $products->map(function (Product $product) {
+        return $products->map(function ($product) {
+            /** @var Product $product */
             return new Record(
                 $product->id,
                 $product->name,
-                $product->price,
+                (float)$product->price,
                 $product->image_url,
                 $product->category->name,
                 $product->category->parent->name,

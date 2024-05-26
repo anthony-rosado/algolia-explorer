@@ -16,11 +16,16 @@ class GetProductsController extends Controller
 
     public function __invoke(GetProductsRequest $request): AnonymousResourceCollection
     {
+        $name = $request->has('name') ? (string)$request->query('name') : null;
+        $isAvailable = $request->has('is_available') ? (bool)$request->query('is_available') : null;
+        $perPage = $request->has('per_page') ? (int)$request->query('per_page') : null;
+        $page = $request->has('page') ? (int)$request->query('page') : null;
+
         $products = $this->service->getListPaginated(
-            $request->query('name'),
-            $request->query('is_available'),
-            $request->query('per_page'),
-            $request->query('page'),
+            $name,
+            $isAvailable,
+            $perPage,
+            $page,
         );
 
         return ProductResource::collection($products);
