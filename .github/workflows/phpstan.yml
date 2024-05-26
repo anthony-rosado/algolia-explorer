@@ -12,6 +12,9 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v3
 
+      - name: "Install dependencies"
+        uses: php-actions/composer@v6
+
       - name: PHPStan
         uses: php-actions/phpstan@v3
         with:
