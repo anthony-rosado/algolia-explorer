@@ -20,7 +20,7 @@ class GetProductsController extends Controller
             $request->query('name'),
             $request->query('is_available'),
             $request->query('per_page'),
-            $request->query('page'),
+            $request->query('page')
         );
 
         return ProductResource::collection($products);
