@@ -21,7 +21,7 @@ readonly class ProductObserver
         $record = new Record(
             $product->id,
             $product->name,
-            $product->price,
+            (float)$product->price,
             $product->image_url,
             $product->category->name,
             $product->category->parent->name,
@@ -41,7 +41,7 @@ readonly class ProductObserver
         $record = new Record(
             $product->id,
             $product->name,
-            $product->price,
+            (float)$product->price,
             $product->image_url,
             $product->category->name,
             $product->category->parent->name,
