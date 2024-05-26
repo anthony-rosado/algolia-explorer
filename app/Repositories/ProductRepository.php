@@ -61,7 +61,7 @@ class ProductRepository extends ModelRepository
         $product->name = $name;
         $product->description = $description;
         $product->is_available = $isAvailable;
-        $product->price = $price;
+        $product->price = (string)$price;
         $product->stock = $stock;
         $product->image_url = $imageUrl;
         $product->category()->associate($categoryId);
@@ -84,7 +84,7 @@ class ProductRepository extends ModelRepository
         $this->model->name = $name;
         $this->model->description = $description;
         $this->model->is_available = $isAvailable;
-        $this->model->price = $price;
+        $this->model->price = (string)$price;
         $this->model->stock = $stock;
         $this->model->image_url = $imageUrl;
         $this->model->category()->associate($categoryId);
