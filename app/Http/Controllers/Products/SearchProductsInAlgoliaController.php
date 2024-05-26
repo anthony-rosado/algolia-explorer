@@ -21,8 +21,8 @@ class SearchProductsInAlgoliaController extends Controller
         try {
             $searchResult = $this->service->searchInAlgolia(
                 $request->query('query'),
-                $request->query('page', 1),
-                $request->query('per_page', 15)
+                $request->query('page') ?? 1,
+                $request->query('per_page') ?? 15,
             );
 
             return response()->json($searchResult->toArray());
