@@ -1,7 +1,9 @@
-name: "CI"
+name: "CI - Code Style"
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - "**.php"
       - "phpcs.xml"
@@ -11,16 +13,19 @@ jobs:
   phpcs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup PHP"
+        uses: shivammathur/setup-php@v2
         with:
-          fetch-depth: 0 # important!
+          php-version: "8.2"
 
-      - name: Install PHP_CodeSniffer
-        run: |
-          curl -OL https://phars.phpcodesniffer.com/phpcs.phar
-          php phpcs.phar --version
+      - name: "Install PHP CodeSniffer"
+        run: curl -OL https://phars.phpcodesniffer.com/phpcs.phar
 
-      - uses: tinovyatkin/action-php-codesniffer@v1
+      - name: "Run PHP CodeSniffer"
+        uses: tinovyatkin/action-php-codesniffer@v1
         with:
           files: "**.php"
           phpcs_path: php phpcs.phar
